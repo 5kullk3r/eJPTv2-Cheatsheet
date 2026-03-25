@@ -35,7 +35,7 @@ Check for accessible files and directories.
 smbclient -L //10.11.12.13 -N
 
 # Map permissions for a specific user
-smbmap -H 10.11.12.13 -u user -p "password123"
+smbmap -H 10.11.12.13 -u user -p "pass"
 
 # Comprehensive Windows enumeration
 enum4linux -a 10.11.12.13
@@ -127,5 +127,5 @@ whoami /priv
 grep "ENCRYPT_METHOD" /etc/login.defs
 
 # Locate flags
-dir C:\Users\mike\Documents\flag.txt
-cat /home/auditor/flag.txt
+dir C:\Users\xyz\abc\flag.txt
+cat /home/user/flag.txt
